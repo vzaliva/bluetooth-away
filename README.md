@@ -22,7 +22,7 @@ Realistic config to keep Nest from going into AWAY mode:
          "found": "nest.py --user user@example.com --password 'secret123' away here",
          "available": "nest.py --user user@example.com --password 'secret123' away here"
     }
-   }
+    }
 
 See `config.cfg` for more configration options.
 
