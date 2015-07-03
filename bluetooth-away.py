@@ -92,7 +92,7 @@ def main():
         while tries < check_attempts:
             # for debugging on Mac simulate Linux ping via file check
             #process = subprocess.Popen(['cat', "fake"], shell=False, stdout=subprocess.PIPE)
-            process = subprocess.Popen(['/usr/bin/l2ping', device, '-t', '1', '-c', '1'], shell=False, stdout=subprocess.PIPE)
+            process = subprocess.Popen(['sudo', '/usr/bin/l2ping', device, '-t', '1', '-c', '1'], shell=False, stdout=subprocess.PIPE)
             process.wait()
             if process.returncode == 0:
                 log.debug("ping OK")
