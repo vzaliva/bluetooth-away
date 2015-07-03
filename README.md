@@ -14,8 +14,8 @@ See `config.cfg` for configuration.
 Vadim Zaliva <lord@crocodile.org>
 
 Credits:
-------
+--------
 
-Original Script: https://github.com/jotson/bluetooth-lock
-PyNest (patched to support 'away' command): https://github.com/RandyLevensalor/pynest
+  * Original Script: https://github.com/jotson/bluetooth-lock
+  * PyNest (patched to support 'away' command): https://github.com/RandyLevensalor/pynest
 
