@@ -11,16 +11,16 @@ let specs =
   ( 'f', "config",  None, (atmost_once cfgfile (Error "only one config")))
 ]
 
-let usage =
+let usage () =
   Printf.printf  "Usage:\n";
   Printf.printf "    bluetooth-away [-f <cfg file>] [-c] [-d]\n";
-  Printf.printf "    -c : log to console instead of log file\n";
-  Printf.printf "   -d : debug\n";
-  Printf.printf "   -f <cfg file> : config file name.\n"
+  Printf.printf "        -c : log to console instead of log file\n";
+  Printf.printf "        -d : debug\n";
+  Printf.printf "        -f <cfg file> : config file name\n"
   
 let _ =
-  try parse_cmdline specs print_endline with
-  | Getopt.Error s -> (Printf.printf "Error: %s\n\n" s); usage;
+  (try parse_cmdline specs print_endline with
+  | Getopt.Error s -> Printf.printf "Error:\n    %s\n" s; usage ());
                       
   Printf.printf "console = %b\n" !console;
   Printf.printf "debug  = %b\n" !debug;
