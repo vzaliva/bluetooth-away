@@ -4,9 +4,6 @@ let console = ref false
 and debug = ref false
 and cfgfile  = ref ""
 
-let bip ()  = Printf.printf "\007"; flush stdout
-let wait () = Unix.sleep 1 
-
 let specs = 
 [
   ( 'c', "console", (set console true), None);
@@ -23,7 +20,7 @@ let usage =
   
 let _ =
   try parse_cmdline specs print_endline with
-  | Getopt.Error s -> usage; Printf.printf "Error %s\n\n" s;
+  | Getopt.Error s -> (Printf.printf "Error: %s\n\n" s); usage;
                       
   Printf.printf "console = %b\n" !console;
   Printf.printf "debug  = %b\n" !debug;
