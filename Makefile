@@ -1,4 +1,4 @@
-PACKS = getopt
+PACKS = getopt yojson
 THREADS = false
 
 RESULT    = bluetooth-away
