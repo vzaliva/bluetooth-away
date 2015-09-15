@@ -1,0 +1,11 @@
+# Use the byte-code compiler
+BYTE_ENABLED = true
+NATIVE_ENABLED = false
+OCAMLCFLAGS += -g
+
+USE_OCAMLFIND = true
+OCAMLPACKS[] = getopt yojson
+
+#Build the program
+OCamlProgram(BluetoothAway, BluetoothAway)
+.DEFAULT: BluetoothAway

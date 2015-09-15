@@ -1,0 +1,8 @@
+.omakedb
+.omakedb.lock
+BluetoothAway.cmi
+BluetoothAway.cmo
+BluetoothAway
+BluetoothAway.run
+*.omc
+*.log
