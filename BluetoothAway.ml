@@ -26,13 +26,13 @@ let usage () =
 let specs = 
 [
   ( 'v', "version", Some (fun _ -> Printf.printf "%s %s\n" prograname version ; exit 0), None,
-    "show program version");
+    "Show program version");
   ( 'h', "help", Some (fun _ -> usage() ; exit 0), None,
-    "show this help");
+    "Show this help");
   ( 'c', "console", (set console true), None,
-    "log to console instead of log file");
+    "Log to console instead of log file");
   ( 'd', "debug", (set debug true), None,
-    "debug");
+    "Debug");
   ( 'f', "config",  None, (atmost_once cfgfile (Error "only one config")),
     (Printf.sprintf "config file name. Default (%s)" default_cfgfile));
   ( 'l', "log",  None, (atmost_once logfile (Error "only one log")),

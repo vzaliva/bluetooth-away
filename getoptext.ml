@@ -13,9 +13,12 @@ let ext_parse_cmdline eopts others =  parse_cmdline (map optext2opt eopts) other
 let get_usage eopts =
   let eopt_descr = function
     | (s, l, _, _, _) when s=noshort && l=nolong -> "INVALID OPTION"
-    | (s, l, _, _, d) when s=noshort -> Printf.sprintf "--%s:\t%s" l d
-    | (s, l, _, _, d) when l=nolong -> Printf.sprintf "-%c:\t%s" s d
-    | (s, l, _, _, d) -> Printf.sprintf "-%c, --%s:\t%s" s l d
+    | (s, l, _, None, d) when s=noshort -> Printf.sprintf "--%s :\t%s" l d
+    | (s, l, _, None, d) when l=nolong -> Printf.sprintf "-%c :\t%s" s d
+    | (s, l, _, None, d) -> Printf.sprintf "-%c, --%s :\t%s" s l d
+    | (s, l, _, Some _, d) when s=noshort -> Printf.sprintf "--%s=<arg> :\t%s" l d
+    | (s, l, _, Some _, d) when l=nolong -> Printf.sprintf "-%c <arg> :\t%s" s d
+    | (s, l, _, Some _, d) -> Printf.sprintf "-%c <arg>, --%s=<arg> :\t%s" s l d
   in "Usage:\n\t" ^
   String.concat "\n\t" (map eopt_descr eopts)
 
