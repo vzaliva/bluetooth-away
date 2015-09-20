@@ -39,8 +39,8 @@ let _ =
   (try parse_cmdline specs print_endline with
    | Getopt.Error s -> Printf.printf "Error:\n    %s\n" s; usage (); (exit 1));
 
-  if String.length !cfgfile == 0 then cfgfile := default_cfgfile;
-  if String.length !logfile == 0 then logfile := default_logfile;
+  if !cfgfile = "" then cfgfile := default_cfgfile;
+  if !logfile = "" then logfile := default_logfile;
 
   read_cfg() ;
   let open Yojson.Basic.Util in
