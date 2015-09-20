@@ -33,8 +33,9 @@ let read_cfg () =
   cfg := (Yojson.Basic.from_file !cfgfile)
   
 let _ =
-  (try ext_parse_cmdline specs print_endline print_usage_and_exit_action with
-   | Getopt.Error s -> Printf.printf "Error:\n    %s\n" s; print_usage specs; exit 1);
+  let ue _ = print_usage specs; exit 1 in
+  (try ext_parse_cmdline specs ue print_usage_and_exit_action with
+   | Getopt.Error s -> Printf.printf "Error:\n    %s\n" s; ue ());
 
   if !cfgfile = "" then cfgfile := default_cfgfile;
   if !logfile = "" then logfile := default_logfile;
