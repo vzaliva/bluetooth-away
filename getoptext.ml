@@ -1,4 +1,4 @@
-(* Extension of Getopt module which allows automatic generation of usage message from user-provided options description.
+(* Extension of Getopt module which allows automatic generation of usage message from user-provided options' description.
 
 Vadim Zaliva <lord@crocodile.org>
  *)
