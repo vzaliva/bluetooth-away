@@ -1,5 +1,6 @@
 open Getopt
 open Yojson
+open List
 
 let prograname = "BluetoothAway"
 and version = "0.1"
@@ -22,21 +23,34 @@ let usage () =
   Printf.printf "        -f <cfg file>, --config <cfg file> : config file name. Default (%s)\n" default_cfgfile;
   Printf.printf "        -l <log file>, --log <log file> : log file name. Default (%s)\n" default_logfile
 
+type optext = char * string * ((unit -> unit) option) * ((string -> unit) option) * string
+
+let optext2opt = function
+  | (a,b,c,d,_) -> (a,b,c,d)
+
+let ext_parse_cmdline eopts others =  parse_cmdline (map optext2opt eopts) others
+                
 let specs = 
 [
-  ( 'v', "version", Some (fun _ -> Printf.printf "%s %s\n" prograname version ; exit 0), None);
-  ( 'h', "help", Some (fun _ -> usage() ; exit 0), None);
-  ( 'c', "console", (set console true), None);
-  ( 'd', "debug", (set debug true), None);
-  ( 'f', "config",  None, (atmost_once cfgfile (Error "only one config")));
-  ( 'l', "log",  None, (atmost_once logfile (Error "only one log")))
+  ( 'v', "version", Some (fun _ -> Printf.printf "%s %s\n" prograname version ; exit 0), None,
+    "show program version");
+  ( 'h', "help", Some (fun _ -> usage() ; exit 0), None,
+    "show this help");
+  ( 'c', "console", (set console true), None,
+    "log to console instead of log file");
+  ( 'd', "debug", (set debug true), None,
+    "debug");
+  ( 'f', "config",  None, (atmost_once cfgfile (Error "only one config")),
+    (Printf.sprintf "config file name. Default (%s)\n" default_cfgfile));
+  ( 'l', "log",  None, (atmost_once logfile (Error "only one log")),
+    (Printf.sprintf "log file name. Default (%s)\n" default_logfile))
 ]
 
 let read_cfg () =
   cfg := (Yojson.Basic.from_file !cfgfile)
   
 let _ =
-  (try parse_cmdline specs print_endline with
+  (try ext_parse_cmdline specs print_endline with
    | Getopt.Error s -> Printf.printf "Error:\n    %s\n" s; usage (); (exit 1));
 
   if !cfgfile = "" then cfgfile := default_cfgfile;
