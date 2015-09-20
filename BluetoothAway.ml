@@ -1,6 +1,6 @@
-open Getopt
 open Yojson
-open List
+open Getopt
+open Getoptext
 
 let prograname = "BluetoothAway"
 and version = "0.1"
@@ -23,13 +23,6 @@ let usage () =
   Printf.printf "        -f <cfg file>, --config <cfg file> : config file name. Default (%s)\n" default_cfgfile;
   Printf.printf "        -l <log file>, --log <log file> : log file name. Default (%s)\n" default_logfile
 
-type optext = char * string * ((unit -> unit) option) * ((string -> unit) option) * string
-
-let optext2opt = function
-  | (a,b,c,d,_) -> (a,b,c,d)
-
-let ext_parse_cmdline eopts others =  parse_cmdline (map optext2opt eopts) others
-                
 let specs = 
 [
   ( 'v', "version", Some (fun _ -> Printf.printf "%s %s\n" prograname version ; exit 0), None,
