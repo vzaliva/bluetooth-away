@@ -2,13 +2,15 @@
 
 open Getopt
 open List
-
+       
 type optext = char * string * ((unit -> unit) option) * ((string -> unit) option) * string
 
-let optext2opt = function
-  | (a,b,c,d,_) -> (a,b,c,d)
-
-let ext_parse_cmdline eopts others =  parse_cmdline (map optext2opt eopts) others
+(* Special action function which will trigger printing usage and exiting*)
+let usage_action () = ()
+                                                                                      
+let optext2opt print_usage_func = function
+  | (s,l,Some usage_action,f2,_) -> (s,l,Some (fun _ -> Lazy.force print_usage_func), f2)
+  | (s,l,f1,f2,_) -> (s,l,f1,f2)
 
 let get_usage eopts =
   let eopt_descr = function
@@ -22,5 +24,9 @@ let get_usage eopts =
   in "Usage:\n\t" ^
   String.concat "\n\t" (map eopt_descr eopts)
 
-let pring_usage eopts = print_endline (get_usage eopts)
+let print_usage eopts = print_endline (get_usage eopts)
 
+let ext_parse_cmdline eopts others =  parse_cmdline
+                                        (map (optext2opt (lazy (print_usage eopts))) eopts) others
+                                        
+                                      
