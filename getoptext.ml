@@ -1,8 +1,12 @@
-(* Extension of Getopt module *)
+(* Extension of Getopt module which allows automatic generation of usage message from user-provided options description.
+
+Vadim Zaliva <lord@crocodile.org>
+ *)
 
 open Getopt
 open List
-       
+
+(* extension of Getopt.opt with extra description field *)
 type optext = char * string * ((unit -> unit) option) * ((string -> unit) option) * string
 
 (* Special action function which will trigger printing usage. Specify it as 'action' field in 'optext' *)
