@@ -34,9 +34,9 @@ let specs =
   ( 'd', "debug", (set debug true), None,
     "debug");
   ( 'f', "config",  None, (atmost_once cfgfile (Error "only one config")),
-    (Printf.sprintf "config file name. Default (%s)\n" default_cfgfile));
+    (Printf.sprintf "config file name. Default (%s)" default_cfgfile));
   ( 'l', "log",  None, (atmost_once logfile (Error "only one log")),
-    (Printf.sprintf "log file name. Default (%s)\n" default_logfile))
+    (Printf.sprintf "log file name. Default (%s)" default_logfile))
 ]
 
 let read_cfg () =
@@ -55,4 +55,6 @@ let _ =
   let addr = c |> member "Device" |> to_string in
   Printf.printf "Device %s\n" addr;
   Printf.printf "log  = %s\n" !logfile;
-  Printf.printf "config  = %s\n" !cfgfile
+  Printf.printf "config  = %s\n" !cfgfile;
+
+                pring_usage specs
