@@ -18,7 +18,8 @@ let optext2opt print_usage_func = function
 
 let get_usage eopts =
   let eopt_descr = function
-    | (s, l, _, _, _) when s=noshort && l=nolong -> "INVALID OPTION"
+    | (s, l, _, _, _) when s=noshort && l=nolong ->
+       raise (Getopt.Error "Invalid option: must have either long or short form or both")
     | (s, l, _, None, d) when s=noshort -> Printf.sprintf "--%s :\t%s" l d
     | (s, l, _, None, d) when l=nolong -> Printf.sprintf "-%c :\t%s" s d
     | (s, l, _, None, d) -> Printf.sprintf "-%c, --%s :\t%s" s l d
