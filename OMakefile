@@ -4,7 +4,8 @@ NATIVE_ENABLED = false
 OCAMLCFLAGS += -g
 
 USE_OCAMLFIND = true
-OCAMLPACKS[] = getopt yojson
+OCAMLFINDFLAGS = -syntax camlp4o
+OCAMLPACKS[] = getopt yojson bolt
 
 PROGRAM = BluetoothAway
 FILES = $(PROGRAM) getoptext

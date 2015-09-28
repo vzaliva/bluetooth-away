@@ -7,7 +7,6 @@ and version = "0.1"
 and default_cfgfile  = "bluetooth-away.cfg"
 and default_logfile  = "bluetooth-away.log"
        
-let console = ref false
 and debug = ref false
 and cfgfile  = ref ""
 and logfile  = ref ""
@@ -19,7 +18,7 @@ let specs =
     "Show program version");
   ( 'h', "help", Some usage_action, None,
     "Show this help");
-  ( 'c', "console", (set console true), None,
+  ( 'c', "console",  Some (fun _ -> logfile := "<stderr>"; ()), None,
     "Log to console instead of log file");
   ( 'd', "debug", (set debug true), None,
     "Debug");
@@ -31,7 +30,17 @@ let specs =
 
 let read_cfg () =
   cfg := (Yojson.Basic.from_file !cfgfile)
-  
+
+let setup_log () =
+  let seconds24h = 86400. in
+  Bolt.Logger.register
+    "BLUETOOTHAWAY"
+    Bolt.Level.TRACE
+    "all"
+    "default"
+    (Bolt.Mode.direct ())    
+    "file" (!logfile, ({Bolt.Output.seconds_elapsed=Some seconds24h; Bolt.Output.signal_caught=None}))
+
 let _ =
   let ue _ = print_usage specs; exit 1 in
   (try ext_parse_cmdline specs ue print_usage_and_exit_action with
@@ -40,7 +49,10 @@ let _ =
   if !cfgfile = "" then cfgfile := default_cfgfile;
   if !logfile = "" then logfile := default_logfile;
 
-  read_cfg() ;
+  setup_log ();
+  LOG "application start" LEVEL TRACE;
+
+  read_cfg () ;
   let open Yojson.Basic.Util in
   let c = !cfg in
   let addr = c |> member "Device" |> to_string in
