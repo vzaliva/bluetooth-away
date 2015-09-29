@@ -18,8 +18,8 @@ let specs =
     "Show program version");
   ( 'h', "help", Some usage_action, None,
     "Show this help");
-  ( 'c', "console",  Some (fun _ -> logfile := "<stderr>"; ()), None,
-    "Log to console instead of log file");
+  ('c', "console",  Some (fun _ -> logfile := "<stderr>"), None,
+   "Log to console instead of log file");
   ( 'd', "debug", (set debug true), None,
     "Debug");
   ( 'f', "config",  None, (atmost_once cfgfile (Error "only one config")),
@@ -33,11 +33,14 @@ let read_cfg () =
 
 let setup_log () =
   let seconds24h = 86400. in
+  let dt_layout = Bolt.Layout.pattern
+    [] [] "$(year)-$(month)-$(mday) $(hour):$(min):$(sec) $(level:5): $(message)" in
+  Bolt.Layout.register "datetime" dt_layout ;
   Bolt.Logger.register
-    "BLUETOOTHAWAY"
-    Bolt.Level.TRACE
+    "BluetoothAway"
+    (if !debug then Bolt.Level.TRACE else Bolt.Level.INFO)
     "all"
-    "default"
+    "datetime"
     (Bolt.Mode.direct ())    
     "file" (!logfile, ({Bolt.Output.seconds_elapsed=Some seconds24h; Bolt.Output.signal_caught=None}))
 
@@ -50,7 +53,7 @@ let _ =
   if !logfile = "" then logfile := default_logfile;
 
   setup_log ();
-  LOG "application start" LEVEL TRACE;
+  LOG "application start" LEVEL DEBUG;
 
   read_cfg () ;
   let open Yojson.Basic.Util in
