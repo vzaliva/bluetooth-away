@@ -2,7 +2,7 @@ open Yojson
 open Getopt
 open Getoptext
 
-let prograname = "BluetoothAway"
+let prograname = "BluetoothAway" (* must executable module name *)
 and version = "0.1"
 and default_cfgfile  = "bluetooth-away.cfg"
 and default_logfile  = "bluetooth-away.log"
@@ -29,6 +29,7 @@ let specs =
 ]
 
 let read_cfg () =
+  LOG "Reading config from '%s'" !cfgfile LEVEL DEBUG;
   cfg := (Yojson.Basic.from_file !cfgfile)
 
 let setup_log () =
@@ -37,23 +38,24 @@ let setup_log () =
     [] [] "$(year)-$(month)-$(mday) $(hour):$(min):$(sec) $(level:5): $(message)" in
   Bolt.Layout.register "datetime" dt_layout ;
   Bolt.Logger.register
-    "BluetoothAway"
+    prograname
     (if !debug then Bolt.Level.TRACE else Bolt.Level.INFO)
     "all"
     "datetime"
     (Bolt.Mode.direct ())    
     "file" (!logfile, ({Bolt.Output.seconds_elapsed=Some seconds24h; Bolt.Output.signal_caught=None}))
 
-let _ =
+let parse_cmdline () =
   let ue _ = print_usage specs; exit 1 in
   (try ext_parse_cmdline specs ue print_usage_and_exit_action with
    | Getopt.Error s -> Printf.printf "Error:\n    %s\n" s; ue ());
-
   if !cfgfile = "" then cfgfile := default_cfgfile;
-  if !logfile = "" then logfile := default_logfile;
-
+  if !logfile = "" then logfile := default_logfile
+    
+let _ =
+  parse_cmdline ();
   setup_log ();
-  LOG "application start" LEVEL DEBUG;
+  LOG "Launched" LEVEL DEBUG;
 
   read_cfg () ;
   let open Yojson.Basic.Util in
