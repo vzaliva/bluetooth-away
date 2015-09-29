@@ -13,7 +13,11 @@ type optext = char * string * ((unit -> unit) option) * ((string -> unit) option
 let usage_action () = ()
                                                                                       
 let optext2opt print_usage_func = function
-  | (s,l,Some usage_action,f2,_) -> (s,l,Some (fun _ -> Lazy.force print_usage_func), f2)
+  | (s,l,Some a,f2,_) ->
+     if a == (usage_action) then
+       (s,l,Some (fun _ -> Lazy.force print_usage_func), f2)
+     else
+       (s,l,Some a,f2)
   | (s,l,f1,f2,_) -> (s,l,f1,f2)
 
 let get_usage eopts =
