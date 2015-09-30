@@ -79,10 +79,11 @@ let _ =
       if rc=0 then
         ((LOG "Ping OK" LEVEL DEBUG); rc)
       else
-        ((LOG "Ping attempt %d Failed" (attempts-a+1) LEVEL DEBUG);
+        ((LOG "Ping attempt %d Failed" (attempts-a+2) LEVEL DEBUG);
          if a=0 then rc else try_ping (a-1))
     in
-    let rc = try_ping attempts in
+    let rc = try_ping (attempts+1) in
+    LOG "Ping RC=%d" rc LEVEL DEBUG ;
     let cmd =
       let get_trigger n =
         c |> member "Triggers" |> member n |> to_string (* TODO: handle missing *)
@@ -93,9 +94,12 @@ let _ =
       | _, OK -> get_trigger "lost"
       | _, ERROR -> get_trigger "not_found"
     in
-    if cmd <> "" then
+    LOG "CMD=%s" cmd LEVEL DEBUG ;
+    (if cmd <> "" then
       (LOG "Executing %s" cmd LEVEL INFO;
-       ignore (Sys.command cmd));
+       ignore (Sys.command cmd))
+    else
+      (LOG "No command to execute" LEVEL DEBUG));
     Unix.sleep (interval/100); (* TODO: remove *)
     mainloop state
   in mainloop ERROR
