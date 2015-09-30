@@ -70,10 +70,32 @@ let _ =
   let c = !cfg in
   (* let addr = c |> member "Device" |> to_string in *)
   let interval = c |> member "Interval" |> to_int in
-  (* let attempts = c |> member "Attempts" |> to_int in *)
-  let rec mainloop state tries =
-    LOG "State=%s, tries=%d'" (state_to_string state) tries LEVEL DEBUG;
-    Unix.sleep interval;
-    mainloop state tries
-  in mainloop ERROR 0
-  
+  let attempts = c |> member "Attempts" |> to_int in
+  let rec mainloop state =
+    LOG "State=%s" (state_to_string state) LEVEL DEBUG;
+    let rec try_ping a =
+      let cmd = "cat fake" in (* TODO: real command *)
+      let rc = Sys.command cmd in
+      if rc=0 then
+        ((LOG "Ping OK" LEVEL DEBUG); rc)
+      else
+        ((LOG "Ping attempt %d Failed" (attempts-a+1) LEVEL DEBUG);
+         if a=0 then rc else try_ping (a-1))
+    in
+    let rc = try_ping attempts in
+    let cmd =
+      let get_trigger n =
+        c |> member "Triggers" |> member n |> to_string (* TODO: handle missing *)
+      in
+      match rc, state with
+      | 0, OK -> get_trigger "available"
+      | 0, ERROR -> get_trigger "found"
+      | _, OK -> get_trigger "lost"
+      | _, ERROR -> get_trigger "not_found"
+    in
+    if cmd <> "" then
+      (LOG "Executing %s" cmd LEVEL INFO;
+       ignore (Sys.command cmd));
+    Unix.sleep (interval/100); (* TODO: remove *)
+    mainloop state
+  in mainloop ERROR
