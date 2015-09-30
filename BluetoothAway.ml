@@ -12,6 +12,13 @@ and cfgfile  = ref ""
 and logfile  = ref ""
 and cfg = ref `Null
 
+(* ping state *)
+type pstate = OK | ERROR
+
+let state_to_string = function
+  | OK -> "Ok"
+  | ERROR -> "Error"
+
 let specs = 
 [
   ( 'v', "version", Some (fun _ -> Printf.printf "%s %s\n" prograname version ; exit 0), None,
@@ -51,16 +58,22 @@ let parse_cmdline () =
    | Getopt.Error s -> Printf.printf "Error:\n    %s\n" s; ue ());
   if !cfgfile = "" then cfgfile := default_cfgfile;
   if !logfile = "" then logfile := default_logfile
-    
+
 let _ =
   parse_cmdline ();
   setup_log ();
-  LOG "Launched" LEVEL DEBUG;
+  LOG "Launched" LEVEL INFO;
 
   read_cfg () ;
+  
   let open Yojson.Basic.Util in
   let c = !cfg in
-  let addr = c |> member "Device" |> to_string in
-  Printf.printf "Device %s\n" addr;
-  Printf.printf "log  = %s\n" !logfile;
-  Printf.printf "config  = %s\n" !cfgfile
+  (* let addr = c |> member "Device" |> to_string in *)
+  let interval = c |> member "Interval" |> to_int in
+  (* let attempts = c |> member "Attempts" |> to_int in *)
+  let rec mainloop state tries =
+    LOG "State=%s, tries=%d'" (state_to_string state) tries LEVEL DEBUG;
+    Unix.sleep interval;
+    mainloop state tries
+  in mainloop ERROR 0
+  
