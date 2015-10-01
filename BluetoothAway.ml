@@ -6,7 +6,7 @@ let prograname = "BluetoothAway" (* must executable module name *)
 and version = "0.1"
 and default_cfgfile  = "bluetooth-away.cfg"
 and default_logfile  = "bluetooth-away.log"
-       
+                         
 and debug = ref false
 and cfgfile  = ref ""
 and logfile  = ref ""
@@ -20,20 +20,20 @@ let state_to_string = function
   | ERROR -> "Error"
 
 let specs = 
-[
-  ( 'v', "version", Some (fun _ -> Printf.printf "%s %s\n" prograname version ; exit 0), None,
-    "Show program version");
-  ( 'h', "help", Some usage_action, None,
-    "Show this help");
-  ('c', "console",  Some (fun _ -> logfile := "<stderr>"), None,
-   "Log to console instead of log file");
-  ( 'd', "debug", (set debug true), None,
-    "Debug");
-  ( 'f', "config",  None, (atmost_once cfgfile (Error "only one config")),
-    (Printf.sprintf "config file name. Default (%s)" default_cfgfile));
-  ( 'l', "log",  None, (atmost_once logfile (Error "only one log")),
-    (Printf.sprintf "log file name. Default (%s)" default_logfile))
-]
+  [
+    ( 'v', "version", Some (fun _ -> Printf.printf "%s %s\n" prograname version ; exit 0), None,
+      "Show program version");
+    ( 'h', "help", Some usage_action, None,
+      "Show this help");
+    ('c', "console",  Some (fun _ -> logfile := "<stderr>"), None,
+     "Log to console instead of log file");
+    ( 'd', "debug", (set debug true), None,
+      "Debug");
+    ( 'f', "config",  None, (atmost_once cfgfile (Error "only one config")),
+      (Printf.sprintf "config file name. Default (%s)" default_cfgfile));
+    ( 'l', "log",  None, (atmost_once logfile (Error "only one log")),
+      (Printf.sprintf "log file name. Default (%s)" default_logfile))
+  ]
 
 let read_cfg () =
   LOG "Reading config from '%s'" !cfgfile LEVEL DEBUG;
@@ -42,7 +42,7 @@ let read_cfg () =
 let setup_log () =
   let seconds24h = 86400. in
   let dt_layout = Bolt.Layout.pattern
-    [] [] "$(year)-$(month)-$(mday) $(hour):$(min):$(sec) $(level:5): $(message)" in
+                    [] [] "$(year)-$(month)-$(mday) $(hour):$(min):$(sec) $(level:5): $(message)" in
   Bolt.Layout.register "datetime" dt_layout ;
   Bolt.Logger.register
     prograname
@@ -69,35 +69,43 @@ let _ =
   let open Yojson.Basic.Util in
   let c = !cfg in
   (* let addr = c |> member "Device" |> to_string in *)
-  let interval = c |> member "Interval" |> to_int in
-  let attempts = c |> member "Attempts" |> to_int in
-  let rec mainloop state =
-    let rec try_ping a =
-      let cmd = "cat fake" in (* TODO: real command *)
-      let rc = Sys.command cmd in
-      if rc=0 then
-        ((LOG "Ping OK" LEVEL DEBUG); rc)
-      else
-        ((LOG "Ping attempt %d failed with code %d" (attempts-a+2) rc LEVEL DEBUG);
-         if a=0 then rc else try_ping (a-1))
-    in
-    let rc = try_ping (attempts+1) in
-    let (cmd, newstate) =
-      let get_trigger n =
-        LOG "TRIGGER=%s" n LEVEL DEBUG ;
-        c |> member "Triggers" |> member n |> to_string (* TODO: handle missing *)
-      in
-      match rc, state with
-      | 0, OK -> (get_trigger "available", OK)
-      | 0, ERROR -> (get_trigger "found", OK)
-      | _, OK -> (get_trigger "lost", ERROR)
-      | _, ERROR -> (get_trigger "not_available", ERROR)
-    in
-    (if cmd <> "" then
-      (LOG "Executing %s" cmd LEVEL INFO;
-       ignore (Sys.command cmd))
-    else
-      (LOG "No command to execute" LEVEL DEBUG));
-    Unix.sleep (interval/100); (* TODO: remove *)
-    mainloop newstate
-  in mainloop ERROR
+  match 
+    (c |> member "Interval" |> to_option to_int),
+    (c |> member "Attempts" |> to_option to_int) with
+  | Some interval, Some attempts ->
+     let rec mainloop state =
+        let rec try_ping a =
+          let cmd = "cat fake" in (* TODO: real command *)
+          let rc = Sys.command cmd in
+          if rc=0 then
+            ((LOG "Ping OK" LEVEL DEBUG); rc)
+          else
+            ((LOG "Ping attempt %d failed with code %d" (attempts-a+2) rc LEVEL DEBUG);
+             if a=0 then rc else try_ping (a-1))
+        in
+        let rc = try_ping (attempts+1) in
+        let (cmd, newstate) =
+          let get_trigger n =
+            LOG "TRIGGER=%s" n LEVEL DEBUG ;
+            let t = (c |> member "Triggers") in
+            t |> member n |> to_option to_string 
+          in
+          match rc, state with
+          | 0, OK -> (get_trigger "available", OK)
+          | 0, ERROR -> (get_trigger "found", OK)
+          | _, OK -> (get_trigger "lost", ERROR)
+          | _, ERROR -> (get_trigger "not_available", ERROR)
+        in
+        (match cmd with
+         | Some cmds ->
+            (LOG "Executing %s" cmds LEVEL INFO;
+             ignore (Sys.command cmds))
+         | None ->
+            (LOG "No command to execute" LEVEL DEBUG));
+        Unix.sleep (interval/100); (* TODO: remove *)
+        mainloop newstate
+      in mainloop ERROR
+  | None, _ -> LOG "Missing 'Interval' config value" LEVEL ERROR; exit 1
+  | _, None -> LOG "Missing 'Attempts' config value" LEVEL ERROR; exit 1
+                 
+                 
