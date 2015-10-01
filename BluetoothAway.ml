@@ -2,7 +2,7 @@ open Yojson
 open Getopt
 open Getoptext
 
-let prograname = "BluetoothAway" (* must executable module name *)
+let prograname = "BluetoothAway" (* must match executable module name *)
 and version = "0.1"
 and default_cfgfile  = "bluetooth-away.cfg"
 and default_logfile  = "bluetooth-away.log"
@@ -14,10 +14,6 @@ and cfg = ref `Null
 
 (* ping state *)
 type pstate = OK | ERROR
-
-let state_to_string = function
-  | OK -> "Ok"
-  | ERROR -> "Error"
 
 let specs = 
   [
@@ -68,16 +64,16 @@ let _ =
   
   let open Yojson.Basic.Util in
   let c = !cfg in
-  (* let addr = c |> member "Device" |> to_string in *)
-  match 
+  match
+    (c |> member "Device" |> to_option to_string),
     (c |> member "Interval" |> to_option to_int),
     (c |> member "Attempts" |> to_option to_int),
     (c |> member "Triggers")
   with
-  | Some interval, Some attempts, (`Assoc _ as t) ->
+  | Some addr, Some interval, Some attempts, (`Assoc _ as t) ->
      let rec mainloop state =
        let rec try_ping a =
-         let cmd = "cat fake" in (* TODO: real command *)
+         let cmd = "sudo /usr/bin/l2ping " ^ addr ^ " -t1 -c1" in
          let rc = Sys.command cmd in
          if rc=0 then
            (LOG "Ping OK" LEVEL DEBUG; rc)
@@ -103,8 +99,9 @@ let _ =
        Unix.sleep interval;
        mainloop newstate
      in mainloop ERROR
-  | None, _, _ -> LOG "Missing 'Interval' config value" LEVEL ERROR; exit 1
-  | _, None, _ -> LOG "Missing 'Attempts' config value" LEVEL ERROR; exit 1
-  | _, _, _ -> LOG "Missing 'Trigger' config section" LEVEL ERROR; exit 1
+  | None, _, _ , _ -> LOG "Missing 'Device' config value" LEVEL ERROR; exit 1
+  | _, None, _ , _ -> LOG "Missing 'Interval' config value" LEVEL ERROR; exit 1
+  | _, _, None, _ -> LOG "Missing 'Attempts' config value" LEVEL ERROR; exit 1
+  | _, _, _, _ -> LOG "Missing 'Trigger' config section" LEVEL ERROR; exit 1
                                                                         
                                                                         
