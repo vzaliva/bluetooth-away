@@ -46,7 +46,7 @@ config file format.
 To compile OCaml version you need to install additional packages using
 followin command
 
-    opam install omake getopt yojson bolt
+    $ opam install omake getopt yojson bolt
 
 Credits
 ------
