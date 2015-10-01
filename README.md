@@ -35,16 +35,21 @@ Running
     -d -- debug
     -f <cfg file> -- config file name. Default is 'bluetooth-away.cfg'
 
-Implementation Note:
---------
+Implementation Notes
+-------------------
 
 Two implementations are provided. The original one was in Python, but
 latter it was rewritten as an excercise in OCaml. They are
 functionally equivalent, and support same command line optons and
 config file format.
 
-Credits:
---------
+To compile OCaml version you need to install additional packages using
+followin command
+
+    opam install omake getopt yojson bolt
+
+Credits
+------
 
   * Original Script: https://github.com/jotson/bluetooth-lock
   * PyNest (patched to support 'away' command): https://github.com/RandyLevensalor/pynest
