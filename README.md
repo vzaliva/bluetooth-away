@@ -35,6 +35,13 @@ Running
     -d -- debug
     -f <cfg file> -- config file name. Default is 'bluetooth-away.cfg'
 
+Implementation Note:
+--------
+
+Two implementations are provided. The original one was in Python, but
+latter it was rewritten as an excercise in OCaml. They are
+functionally equivalent, and support same command line optons and
+config file format.
 
 Credits:
 --------
