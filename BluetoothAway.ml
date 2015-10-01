@@ -72,34 +72,32 @@ let _ =
   let interval = c |> member "Interval" |> to_int in
   let attempts = c |> member "Attempts" |> to_int in
   let rec mainloop state =
-    LOG "State=%s" (state_to_string state) LEVEL DEBUG;
     let rec try_ping a =
       let cmd = "cat fake" in (* TODO: real command *)
       let rc = Sys.command cmd in
       if rc=0 then
         ((LOG "Ping OK" LEVEL DEBUG); rc)
       else
-        ((LOG "Ping attempt %d Failed" (attempts-a+2) LEVEL DEBUG);
+        ((LOG "Ping attempt %d failed with code %d" (attempts-a+2) rc LEVEL DEBUG);
          if a=0 then rc else try_ping (a-1))
     in
     let rc = try_ping (attempts+1) in
-    LOG "Ping RC=%d" rc LEVEL DEBUG ;
-    let cmd =
+    let (cmd, newstate) =
       let get_trigger n =
+        LOG "TRIGGER=%s" n LEVEL DEBUG ;
         c |> member "Triggers" |> member n |> to_string (* TODO: handle missing *)
       in
       match rc, state with
-      | 0, OK -> get_trigger "available"
-      | 0, ERROR -> get_trigger "found"
-      | _, OK -> get_trigger "lost"
-      | _, ERROR -> get_trigger "not_found"
+      | 0, OK -> (get_trigger "available", OK)
+      | 0, ERROR -> (get_trigger "found", OK)
+      | _, OK -> (get_trigger "lost", ERROR)
+      | _, ERROR -> (get_trigger "not_available", ERROR)
     in
-    LOG "CMD=%s" cmd LEVEL DEBUG ;
     (if cmd <> "" then
       (LOG "Executing %s" cmd LEVEL INFO;
        ignore (Sys.command cmd))
     else
       (LOG "No command to execute" LEVEL DEBUG));
     Unix.sleep (interval/100); (* TODO: remove *)
-    mainloop state
+    mainloop newstate
   in mainloop ERROR

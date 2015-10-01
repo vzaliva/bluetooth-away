@@ -1,7 +1,7 @@
 .omakedb
 .omakedb.lock
-BluetoothAway.cmi
-BluetoothAway.cmo
+*.cmi
+*.cmo
 BluetoothAway
 BluetoothAway.run
 *.omc
