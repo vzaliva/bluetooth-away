@@ -71,41 +71,40 @@ let _ =
   (* let addr = c |> member "Device" |> to_string in *)
   match 
     (c |> member "Interval" |> to_option to_int),
-    (c |> member "Attempts" |> to_option to_int) with
-  | Some interval, Some attempts ->
+    (c |> member "Attempts" |> to_option to_int),
+    (c |> member "Triggers")
+  with
+  | Some interval, Some attempts, (`Assoc _ as t) ->
      let rec mainloop state =
-        let rec try_ping a =
-          let cmd = "cat fake" in (* TODO: real command *)
-          let rc = Sys.command cmd in
-          if rc=0 then
-            ((LOG "Ping OK" LEVEL DEBUG); rc)
-          else
-            ((LOG "Ping attempt %d failed with code %d" (attempts-a+2) rc LEVEL DEBUG);
-             if a=0 then rc else try_ping (a-1))
-        in
-        let rc = try_ping (attempts+1) in
-        let (cmd, newstate) =
-          let get_trigger n =
-            LOG "TRIGGER=%s" n LEVEL DEBUG ;
-            let t = (c |> member "Triggers") in
-            t |> member n |> to_option to_string 
-          in
-          match rc, state with
-          | 0, OK -> (get_trigger "available", OK)
-          | 0, ERROR -> (get_trigger "found", OK)
-          | _, OK -> (get_trigger "lost", ERROR)
-          | _, ERROR -> (get_trigger "not_available", ERROR)
-        in
-        (match cmd with
-         | Some cmds ->
-            (LOG "Executing %s" cmds LEVEL INFO;
-             ignore (Sys.command cmds))
-         | None ->
-            (LOG "No command to execute" LEVEL DEBUG));
-        Unix.sleep (interval/100); (* TODO: remove *)
-        mainloop newstate
-      in mainloop ERROR
-  | None, _ -> LOG "Missing 'Interval' config value" LEVEL ERROR; exit 1
-  | _, None -> LOG "Missing 'Attempts' config value" LEVEL ERROR; exit 1
-                 
-                 
+       let rec try_ping a =
+         let cmd = "cat fake" in (* TODO: real command *)
+         let rc = Sys.command cmd in
+         if rc=0 then
+           (LOG "Ping OK" LEVEL DEBUG; rc)
+         else
+           (LOG "Ping attempt %d failed with code %d" (attempts-a+2) rc LEVEL DEBUG;
+            if a=0 then rc else try_ping (a-1))
+       in
+       let rc = try_ping (attempts+1) in
+       let (cmd, newstate) =
+         let get_trigger n = t |> member n |> to_option to_string in
+         match rc, state with
+         | 0, OK -> (get_trigger "available", OK)
+         | 0, ERROR -> (get_trigger "found", OK)
+         | _, OK -> (get_trigger "lost", ERROR)
+         | _, ERROR -> (get_trigger "not_available", ERROR)
+       in
+       (match cmd with
+        | Some cmds ->
+           (LOG "Executing %s" cmds LEVEL INFO;
+            ignore (Sys.command cmds))
+        | None ->
+           (LOG "No command to execute" LEVEL DEBUG));
+       Unix.sleep interval;
+       mainloop newstate
+     in mainloop ERROR
+  | None, _, _ -> LOG "Missing 'Interval' config value" LEVEL ERROR; exit 1
+  | _, None, _ -> LOG "Missing 'Attempts' config value" LEVEL ERROR; exit 1
+  | _, _, _ -> LOG "Missing 'Trigger' config section" LEVEL ERROR; exit 1
+                                                                        
+                                                                        
