@@ -11,7 +11,7 @@ type optext = char * string * ((unit -> unit) option) * ((string -> unit) option
 
 (* Special action function which will trigger printing usage. Specify it as 'action' field in 'optext' *)
 let usage_action () = ()
-                                                                                      
+                        
 let optext2opt print_usage_func = function
   | (s,l,Some a,f2,_) ->
      if a == (usage_action) then
@@ -31,7 +31,7 @@ let get_usage eopts =
     | (s, l, _, Some _, d) when l=nolong -> Printf.sprintf "-%c <arg> :\t%s" s d
     | (s, l, _, Some _, d) -> Printf.sprintf "-%c <arg>, --%s=<arg> :\t%s" s l d
   in "Usage:\n\t" ^
-  String.concat "\n\t" (map eopt_descr eopts)
+       String.concat "\n\t" (map eopt_descr eopts)
 
 (* This function could be manually invoked to print usage *)
 let print_usage eopts = print_endline (get_usage eopts)
@@ -46,5 +46,5 @@ let print_usage_and_exit_action eopts = (lazy (print_usage eopts; exit 1))
 let ext_parse_cmdline eopts others usage =
   parse_cmdline
     (map (optext2opt (usage eopts)) eopts) others
-                                        
-                                      
+    
+    

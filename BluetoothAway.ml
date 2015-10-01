@@ -1,4 +1,3 @@
-open Yojson
 open Getopt
 open Getoptext
 
@@ -103,5 +102,5 @@ let _ =
   | _, None, _ , _ -> LOG "Missing 'Interval' config value" LEVEL ERROR; exit 1
   | _, _, None, _ -> LOG "Missing 'Attempts' config value" LEVEL ERROR; exit 1
   | _, _, _, _ -> LOG "Missing 'Trigger' config section" LEVEL ERROR; exit 1
-                                                                        
-                                                                        
+                                                                           
+                                                                           
