@@ -9,7 +9,6 @@ and default_logfile  = "bluetooth-away.log"
 and debug = ref false
 and cfgfile  = ref ""
 and logfile  = ref ""
-and cfg = ref `Null
 
 (* ping state *)
 type pstate = OK | ERROR
@@ -32,7 +31,7 @@ let specs =
 
 let read_cfg () =
   LOG "Reading config from '%s'" !cfgfile LEVEL DEBUG;
-  cfg := (Yojson.Basic.from_file !cfgfile)
+  Yojson.Basic.from_file !cfgfile
 
 let setup_log () =
   let seconds24h = 86400. in
@@ -59,10 +58,8 @@ let _ =
   setup_log ();
   LOG "Launched" LEVEL INFO;
 
-  read_cfg () ;
-  
+  let c = read_cfg () in
   let open Yojson.Basic.Util in
-  let c = !cfg in
   match
     (c |> member "Device" |> to_option to_string),
     (c |> member "Interval" |> to_option to_int),

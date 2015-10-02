@@ -18,4 +18,5 @@ OCamlProgram($(PROGRAM), $(FILES))
 clean:
   rm -f \
      $(filter-proper-targets $(glob $(addsuffix .*, $(FILES)))) \
-     $(PROGRAM).run $(PROGRAM).opt
+     $(PROGRAM).run $(PROGRAM).opt $(PROGRAM) \
+	*.omc *.cmo *.o
