@@ -1,6 +1,6 @@
 # Use the byte-code compiler
-BYTE_ENABLED = true
-NATIVE_ENABLED = false
+BYTE_ENABLED = false
+NATIVE_ENABLED = true
 OCAMLCFLAGS += -g
 
 USE_OCAMLFIND = true

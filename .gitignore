@@ -2,7 +2,10 @@
 .omakedb.lock
 *.cmi
 *.cmo
-BluetoothAway
-BluetoothAway.run
 *.omc
 *.log
+*.cmx
+*.o
+*.opt
+*.run
+BluetoothAway
