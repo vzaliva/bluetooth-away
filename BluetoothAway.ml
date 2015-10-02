@@ -1,5 +1,6 @@
 open Getopt
 open Getoptext
+open Yojson.Basic.Util
 
 let prograname = "BluetoothAway" (* must match executable module name *)
 and version = "0.1"
@@ -31,7 +32,20 @@ let specs =
 
 let read_cfg () =
   LOG "Reading config from '%s'" !cfgfile LEVEL DEBUG;
-  Yojson.Basic.from_file !cfgfile
+  (* Check for presence of required fields *)
+  let c = Yojson.Basic.from_file !cfgfile in
+  match
+    (c |> member "Device" |> to_option to_string),
+    (c |> member "Interval" |> to_option to_int),
+    (c |> member "Attempts" |> to_option to_int),
+    (c |> member "Triggers")
+  with
+  | Some _, Some _, Some _, `Assoc _ -> c
+  | None, _, _ , _ -> LOG "Missing 'Device' config value" LEVEL ERROR; exit 1
+  | _, None, _ , _ -> LOG "Missing 'Interval' config value" LEVEL ERROR; exit 1
+  | _, _, None, _ -> LOG "Missing 'Attempts' config value" LEVEL ERROR; exit 1
+  | _, _, _, _ -> LOG "Missing 'Trigger' config section" LEVEL ERROR; exit 1
+                                                                           
 
 let setup_log () =
   let seconds24h = 86400. in
@@ -59,45 +73,34 @@ let _ =
   LOG "Launched" LEVEL INFO;
 
   let c = read_cfg () in
-  let open Yojson.Basic.Util in
-  match
-    (c |> member "Device" |> to_option to_string),
-    (c |> member "Interval" |> to_option to_int),
-    (c |> member "Attempts" |> to_option to_int),
-    (c |> member "Triggers")
-  with
-  | Some addr, Some interval, Some attempts, (`Assoc _ as t) ->
-     let rec mainloop state =
-       let rec try_ping a =
-         let cmd = "sudo /usr/bin/l2ping " ^ addr ^ " -t1 -c1" in
-         let rc = Sys.command cmd in
-         if rc=0 then
-           (LOG "Ping OK" LEVEL DEBUG; rc)
-         else
-           (LOG "Ping attempt %d failed with code %d" (attempts-a+2) rc LEVEL DEBUG;
-            if a=0 then rc else try_ping (a-1))
-       in
-       let rc = try_ping (attempts+1) in
-       let (cmd, newstate) =
-         let get_trigger n = t |> member n |> to_option to_string in
-         match rc, state with
-         | 0, OK -> (get_trigger "available", OK)
-         | 0, ERROR -> (get_trigger "found", OK)
-         | _, OK -> (get_trigger "lost", ERROR)
-         | _, ERROR -> (get_trigger "not_available", ERROR)
-       in
-       (match cmd with
-        | Some cmds ->
-           (LOG "Executing %s" cmds LEVEL INFO;
-            ignore (Sys.command cmds))
-        | None ->
-           (LOG "No command to execute" LEVEL DEBUG));
-       Unix.sleep interval;
-       mainloop newstate
-     in mainloop ERROR
-  | None, _, _ , _ -> LOG "Missing 'Device' config value" LEVEL ERROR; exit 1
-  | _, None, _ , _ -> LOG "Missing 'Interval' config value" LEVEL ERROR; exit 1
-  | _, _, None, _ -> LOG "Missing 'Attempts' config value" LEVEL ERROR; exit 1
-  | _, _, _, _ -> LOG "Missing 'Trigger' config section" LEVEL ERROR; exit 1
-                                                                           
-                                                                           
+  let addr = c |> member "Device" |> to_string in
+  let interval = c |> member "Interval" |> to_int in
+  let attempts = c |> member "Attempts" |> to_int in
+  let rec mainloop state =
+    let rec try_ping a =
+      let cmd = "sudo /usr/bin/l2ping " ^ addr ^ " -t1 -c1" in
+      let rc = Sys.command cmd in
+      if rc=0 then
+        (LOG "Ping OK" LEVEL DEBUG; rc)
+      else
+        (LOG "Ping attempt %d failed with code %d" (attempts-a+2) rc LEVEL DEBUG;
+         if a=0 then rc else try_ping (a-1))
+    in
+    let rc = try_ping (attempts+1) in
+    let (cmd, newstate) =
+      let get_trigger n = c |> member "Triggers"  |> member n |> to_option to_string in
+      match rc, state with
+      | 0, OK -> (get_trigger "available", OK)
+      | 0, ERROR -> (get_trigger "found", OK)
+      | _, OK -> (get_trigger "lost", ERROR)
+      | _, ERROR -> (get_trigger "not_available", ERROR)
+    in
+    (match cmd with
+     | Some cmds ->
+        (LOG "Executing %s" cmds LEVEL INFO;
+         ignore (Sys.command cmds))
+     | None ->
+        (LOG "No command to execute" LEVEL DEBUG));
+    Unix.sleep interval;
+    mainloop newstate
+  in mainloop ERROR
