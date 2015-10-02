@@ -35,6 +35,10 @@ Running
     -d -- debug
     -f <cfg file> -- config file name. Default is 'bluetooth-away.cfg'
 
+Since the script uses `/usr/bin/l2ping` command which must be run with
+superuser priveledges, you either need to run it as such, or make sure
+your `/etc/sudoers` entry have NOPASSWD option.
+
 Implementation Notes
 -------------------
 
